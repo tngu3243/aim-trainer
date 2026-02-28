@@ -45,15 +45,18 @@ const GRIDSHOT_TARGETS  = 3;
 const PRECISION_RADIUS  = 20;   // px — smaller targets
 const PRECISION_TARGETS = 5;
 const TRACKING_RADIUS   = 40;   // px
+const PASU_SPEED_MIN    = 275;  // px/s — minimum target speed
+const PASU_SPEED_MAX    = 515; // px/s — maximum target speed
 
-// Returns true for click-to-hit modes (gridshot & precision)
+// Returns true for click-to-hit modes (gridshot, precision & pasu)
 function isClickMode() {
-  return state.mode === 'gridshot' || state.mode === 'precision';
+  return state.mode === 'gridshot' || state.mode === 'precision' || state.mode === 'pasu';
 }
 
 // Returns the target radius and count for the current click mode, scaled by targetSize
+// Pasu shares the same radius/count as precision
 function getGridConfig() {
-  const base = state.mode === 'precision'
+  const base = (state.mode === 'precision' || state.mode === 'pasu')
     ? { radius: PRECISION_RADIUS, count: PRECISION_TARGETS }
     : { radius: GRIDSHOT_RADIUS,  count: GRIDSHOT_TARGETS };
   return { radius: Math.round(base.radius * state.targetSize), count: base.count };
@@ -207,7 +210,9 @@ function startGame() {
   updateCrosshair();
   area.requestPointerLock();
 
-  if (isClickMode()) {
+  if (state.mode === 'pasu') {
+    initPasu();
+  } else if (isClickMode()) {
     initGridshot();
   } else {
     initTracking();
@@ -222,7 +227,9 @@ function endGame() {
 
   if (document.pointerLockElement) document.exitPointerLock();
 
-  if (isClickMode()) {
+  if (state.mode === 'pasu') {
+    cleanupPasu();
+  } else if (isClickMode()) {
     cleanupGridshot();
   } else {
     cleanupTracking();
@@ -280,7 +287,8 @@ function onGridTargetHit(el) {
   state.hits++;
   state.score += 100;
   el.remove();
-  spawnGridTarget();
+  if (state.mode === 'pasu') spawnPasuTarget();
+  else spawnGridTarget();
   updateHUD();
 }
 
@@ -311,6 +319,98 @@ function onGridMouseDown(e) {
 }
 
 function cleanupGridshot() {
+  const area = document.getElementById('game-area');
+  area.removeEventListener('mousemove', onGameMouseMove);
+  area.removeEventListener('mousedown', onGridMouseDown);
+  clearGameArea();
+}
+
+// ============================================================
+// PASU MODE — precision targets that move (bounce off walls)
+// ============================================================
+function initPasu() {
+  clearGameArea();
+  const { count } = getGridConfig();
+  for (let i = 0; i < count; i++) spawnPasuTarget();
+  const area = document.getElementById('game-area');
+  area.addEventListener('mousemove', onGameMouseMove);
+  area.addEventListener('mousedown', onGridMouseDown);
+  state.lastTimestamp = null;
+  state.gameLoopId = requestAnimationFrame(pasuLoop);
+}
+
+function spawnPasuTarget() {
+  const area  = document.getElementById('game-area');
+  const r     = getGridConfig().radius;
+  const w     = area.clientWidth;
+  const h     = area.clientHeight;
+  const x     = r + Math.random() * (w - 2 * r);
+  const y     = r + Math.random() * (h - 2 * r);
+  const angle = Math.random() * Math.PI * 2;
+  const speed = PASU_SPEED_MIN + Math.random() * (PASU_SPEED_MAX - PASU_SPEED_MIN);
+
+  const el        = document.createElement('div');
+  el.className    = 'target';
+  el.style.width  = `${r * 2}px`;
+  el.style.height = `${r * 2}px`;
+  el.style.left   = `${x}px`;
+  el.style.top    = `${y}px`;
+  el.dataset.vx   = String(Math.cos(angle) * speed);
+  el.dataset.vy   = String(Math.sin(angle) * speed);
+  el.dataset.turn = String((Math.random() - 0.5) * 3); // rad/s, initial turning bias
+  area.appendChild(el);
+}
+
+function pasuLoop(timestamp) {
+  if (state.gameLoopId === null) return;
+
+  if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+  const dt = Math.min((timestamp - state.lastTimestamp) / 1000, 0.1);
+  state.lastTimestamp = timestamp;
+
+  const area = document.getElementById('game-area');
+  const r    = getGridConfig().radius;
+  const w    = area.clientWidth;
+  const h    = area.clientHeight;
+
+  area.querySelectorAll('.target').forEach(el => {
+    let x    = parseFloat(el.style.left);
+    let y    = parseFloat(el.style.top);
+    let vx   = parseFloat(el.dataset.vx);
+    let vy   = parseFloat(el.dataset.vy);
+    let turn = parseFloat(el.dataset.turn);
+
+    // Drift the turn rate each frame for organic, unpredictable curving
+    turn += (Math.random() - 0.5) * 6 * dt;
+    turn  = Math.max(-3, Math.min(3, turn));
+
+    // Rotate velocity direction by turn rate, preserving speed
+    const speed = Math.hypot(vx, vy);
+    const newAngle = Math.atan2(vy, vx) + turn * dt;
+    vx = Math.cos(newAngle) * speed;
+    vy = Math.sin(newAngle) * speed;
+
+    x += vx * dt;
+    y += vy * dt;
+
+    if (x - r < 0)  { x = r;     vx =  Math.abs(vx); }
+    if (x + r > w)  { x = w - r; vx = -Math.abs(vx); }
+    if (y - r < 0)  { y = r;     vy =  Math.abs(vy); }
+    if (y + r > h)  { y = h - r; vy = -Math.abs(vy); }
+
+    el.style.left   = `${x}px`;
+    el.style.top    = `${y}px`;
+    el.dataset.vx   = String(vx);
+    el.dataset.vy   = String(vy);
+    el.dataset.turn = String(turn);
+  });
+
+  state.gameLoopId = requestAnimationFrame(pasuLoop);
+}
+
+function cleanupPasu() {
+  cancelAnimationFrame(state.gameLoopId);
+  state.gameLoopId = null;
   const area = document.getElementById('game-area');
   area.removeEventListener('mousemove', onGameMouseMove);
   area.removeEventListener('mousedown', onGridMouseDown);
@@ -475,7 +575,7 @@ function showStatsScreen() {
   const pbContainer = document.getElementById('personal-bests');
   pbContainer.innerHTML = '';
 
-  ['gridshot', 'precision', 'tracking'].forEach(mode => {
+  ['gridshot', 'precision', 'pasu', 'tracking'].forEach(mode => {
     const sessions = history.filter(r => r.mode === mode);
     const pb       = sessions.length ? Math.max(...sessions.map(r => r.score)) : null;
 
@@ -504,7 +604,7 @@ function showStatsScreen() {
     row.className = 'history-row';
 
     let detail = '';
-    if (r.mode === 'gridshot' || r.mode === 'precision') {
+    if (r.mode === 'gridshot' || r.mode === 'precision' || r.mode === 'pasu') {
       detail = `${r.hits}H / ${r.misses}M · ${r.accuracy}% acc · ${r.duration}s`;
     } else {
       detail = `${r.timeOnTarget}% on target · ${r.duration}s`;

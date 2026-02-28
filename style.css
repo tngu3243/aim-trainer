@@ -640,6 +640,10 @@ html, body {
   color: #c084fc;
 }
 
+.history-mode.pasu {
+  color: #fbbf24;
+}
+
 .history-mode.tracking {
   color: var(--accent-cyan);
 }
