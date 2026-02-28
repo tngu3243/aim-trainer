@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aim Trainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- SCREEN 1: Home -->
+  <section id="screen-home" class="screen active">
+    <div class="home-inner">
+      <div class="logo">AIM<span>TRAINER</span></div>
+
+      <div class="section-label">Mode</div>
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="gridshot">
+          <span class="mode-icon">⊕</span>
+          Gridshot
+        </button>
+        <button class="mode-btn" data-mode="precision">
+          <span class="mode-icon">✦</span>
+          Precision
+        </button>
+        <button class="mode-btn" data-mode="tracking">
+          <span class="mode-icon">◎</span>
+          Tracking
+        </button>
+      </div>
+
+      <div class="section-label">Duration</div>
+      <div class="timer-selector">
+        <button class="time-btn" data-time="15">15s</button>
+        <button class="time-btn active" data-time="30">30s</button>
+        <button class="time-btn" data-time="60">60s</button>
+        <button class="time-btn" data-time="custom">Custom</button>
+      </div>
+      <div id="custom-time-wrapper" hidden>
+        <input type="number" id="custom-time" min="5" max="300" placeholder="5–300 sec">
+      </div>
+
+      <div class="section-label">Target Size</div>
+      <div class="size-selector">
+        <button class="size-btn" data-size="0.5">XS</button>
+        <button class="size-btn" data-size="0.75">S</button>
+        <button class="size-btn active" data-size="1.0">M</button>
+        <button class="size-btn" data-size="1.4">L</button>
+        <button class="size-btn" data-size="1.9">XL</button>
+      </div>
+
+      <div class="home-actions">
+        <button id="btn-start" class="btn-primary">Start</button>
+        <button id="btn-stats" class="btn-secondary">Stats</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: Game -->
+  <section id="screen-game" class="screen">
+    <div id="hud">
+      <span id="hud-timer">30s</span>
+      <span id="hud-score">Score: 0</span>
+      <span id="hud-accuracy" class="hud-extra">Acc: —</span>
+      <span id="hud-tracking" class="hud-extra">On Target: —</span>
+      <button id="btn-quit" class="btn-quit">Quit</button>
+    </div>
+    <div id="game-area"></div>
+  </section>
+
+  <!-- SCREEN 3: Results -->
+  <section id="screen-results" class="screen">
+    <div class="results-inner">
+      <h2>Results</h2>
+      <div id="pb-badge" hidden>★ NEW PERSONAL BEST</div>
+      <div id="results-stats"></div>
+      <div class="results-actions">
+        <button id="btn-play-again" class="btn-primary">Play Again</button>
+        <button id="btn-menu" class="btn-secondary">Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: Stats -->
+  <section id="screen-stats" class="screen">
+    <div class="stats-inner">
+      <h2>Stats</h2>
+      <div class="stats-section">
+        <div class="section-label">Personal Bests</div>
+        <div id="personal-bests"></div>
+      </div>
+      <div class="stats-section">
+        <div class="section-label">Recent Sessions</div>
+        <div id="session-history"></div>
+      </div>
+      <div class="stats-actions">
+        <button id="btn-clear-history" class="btn-danger">Clear History</button>
+        <button id="btn-stats-back" class="btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="game.js"></script>
+</body>
+</html>
