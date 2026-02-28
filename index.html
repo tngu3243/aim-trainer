@@ -52,6 +52,12 @@
         <button class="size-btn" data-size="1.9">XL</button>
       </div>
 
+      <div class="section-label">Sensitivity</div>
+      <div class="sens-row">
+        <input type="range" id="sens-slider" class="sens-slider" min="0.1" max="5" step="0.1" value="1.0">
+        <span id="sens-value">1.0×</span>
+      </div>
+
       <div class="home-actions">
         <button id="btn-start" class="btn-primary">Start</button>
         <button id="btn-stats" class="btn-secondary">Stats</button>
@@ -68,7 +74,7 @@
       <span id="hud-tracking" class="hud-extra">On Target: —</span>
       <button id="btn-quit" class="btn-quit">Quit</button>
     </div>
-    <div id="game-area"></div>
+    <div id="game-area"><div id="crosshair"></div></div>
   </section>
 
   <!-- SCREEN 3: Results -->

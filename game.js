@@ -9,6 +9,7 @@ const state = {
   mode: 'gridshot',
   duration: 30,
   targetSize: 1.0,   // multiplier applied to all target radii
+  sensitivity: 1.0,  // pointer delta multiplier
 
   // Game runtime
   timeRemaining: 0,
@@ -16,12 +17,14 @@ const state = {
   hits: 0,
   misses: 0,
 
+  // Virtual cursor — used for all hit detection
+  vCursorX: 0,
+  vCursorY: 0,
+
   // Tracking runtime
   trackingOnTime: 0,
   trackingTotalTime: 0,
   trackingElapsed: 0,
-  cursorX: 0,
-  cursorY: 0,
   isOnTarget: false,
   lastTimestamp: null,
   trackingParams: null,
@@ -37,11 +40,11 @@ window.state = state;
 // ============================================================
 // Constants
 // ============================================================
-const GRIDSHOT_RADIUS  = 36;   // px
-const GRIDSHOT_TARGETS = 3;
-const PRECISION_RADIUS = 20;   // px — smaller targets
+const GRIDSHOT_RADIUS   = 36;   // px
+const GRIDSHOT_TARGETS  = 3;
+const PRECISION_RADIUS  = 20;   // px — smaller targets
 const PRECISION_TARGETS = 5;
-const TRACKING_RADIUS  = 40;   // px
+const TRACKING_RADIUS   = 40;   // px
 
 // Returns true for click-to-hit modes (gridshot & precision)
 function isClickMode() {
@@ -59,8 +62,9 @@ function getGridConfig() {
 function getTrackingRadius() {
   return Math.round(TRACKING_RADIUS * state.targetSize);
 }
-const LS_KEY           = 'aimtrainer_history';
-const MAX_HISTORY      = 50;
+
+const LS_KEY      = 'aimtrainer_history';
+const MAX_HISTORY = 50;
 
 // ============================================================
 // Utilities
@@ -79,8 +83,9 @@ function formatDate(ts) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+// Only removes .target elements — preserves the crosshair div
 function clearGameArea() {
-  document.getElementById('game-area').innerHTML = '';
+  document.getElementById('game-area').querySelectorAll('.target').forEach(el => el.remove());
 }
 
 // ============================================================
@@ -140,10 +145,40 @@ function updateHUD() {
 }
 
 function setupHUD() {
-  const accEl     = document.getElementById('hud-accuracy');
-  const trackEl   = document.getElementById('hud-tracking');
-  accEl.style.display   = isClickMode()              ? '' : 'none';
-  trackEl.style.display = state.mode === 'tracking'  ? '' : 'none';
+  const accEl   = document.getElementById('hud-accuracy');
+  const trackEl = document.getElementById('hud-tracking');
+  accEl.style.display   = isClickMode()             ? '' : 'none';
+  trackEl.style.display = state.mode === 'tracking' ? '' : 'none';
+}
+
+// ============================================================
+// Virtual cursor & crosshair
+// ============================================================
+function updateCrosshair() {
+  const el = document.getElementById('crosshair');
+  if (el) {
+    el.style.left = `${state.vCursorX}px`;
+    el.style.top  = `${state.vCursorY}px`;
+  }
+}
+
+// Shared mousemove handler for all game modes.
+// With pointer lock active: uses movementX/Y * sensitivity for relative input.
+// Without pointer lock: falls back to absolute cursor position (sensitivity has no effect).
+function onGameMouseMove(e) {
+  const area = document.getElementById('game-area');
+  if (document.pointerLockElement === area) {
+    const w = area.clientWidth;
+    const h = area.clientHeight;
+    state.vCursorX = Math.max(0, Math.min(w, state.vCursorX + e.movementX * state.sensitivity));
+    state.vCursorY = Math.max(0, Math.min(h, state.vCursorY + e.movementY * state.sensitivity));
+  } else {
+    // Fallback: track real cursor position
+    const rect = area.getBoundingClientRect();
+    state.vCursorX = e.clientX - rect.left;
+    state.vCursorY = e.clientY - rect.top;
+  }
+  updateCrosshair();
 }
 
 // ============================================================
@@ -165,6 +200,13 @@ function startGame() {
   updateHUD();
   startCountdown();
 
+  // Position virtual cursor at center and request pointer lock
+  const area = document.getElementById('game-area');
+  state.vCursorX = area.clientWidth  / 2;
+  state.vCursorY = area.clientHeight / 2;
+  updateCrosshair();
+  area.requestPointerLock();
+
   if (isClickMode()) {
     initGridshot();
   } else {
@@ -177,6 +219,8 @@ function endGame() {
   cancelAnimationFrame(state.gameLoopId);
   state.countdownInterval = null;
   state.gameLoopId        = null;
+
+  if (document.pointerLockElement) document.exitPointerLock();
 
   if (isClickMode()) {
     cleanupGridshot();
@@ -204,13 +248,15 @@ function startCountdown() {
 }
 
 // ============================================================
-// GRIDSHOT MODE
+// GRIDSHOT / PRECISION MODE
 // ============================================================
 function initGridshot() {
   clearGameArea();
   const { count } = getGridConfig();
   for (let i = 0; i < count; i++) spawnGridTarget();
-  document.getElementById('game-area').addEventListener('click', onGridAreaClick);
+  const area = document.getElementById('game-area');
+  area.addEventListener('mousemove', onGameMouseMove);
+  area.addEventListener('mousedown', onGridMouseDown);
 }
 
 function spawnGridTarget() {
@@ -221,18 +267,12 @@ function spawnGridTarget() {
   const x    = r + Math.random() * (w - 2 * r);
   const y    = r + Math.random() * (h - 2 * r);
 
-  const el   = document.createElement('div');
+  const el        = document.createElement('div');
   el.className    = 'target';
   el.style.width  = `${r * 2}px`;
   el.style.height = `${r * 2}px`;
   el.style.left   = `${x}px`;
   el.style.top    = `${y}px`;
-
-  el.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onGridTargetHit(el);
-  });
-
   area.appendChild(el);
 }
 
@@ -244,8 +284,27 @@ function onGridTargetHit(el) {
   updateHUD();
 }
 
-function onGridAreaClick(e) {
-  if (!e.target.classList.contains('target')) {
+// Hit detection using virtual cursor position — works correctly with pointer lock
+function onGridMouseDown(e) {
+  if (e.button !== 0) return;
+
+  const r       = getGridConfig().radius;
+  const targets = document.getElementById('game-area').querySelectorAll('.target');
+  let hit       = false;
+
+  for (const el of targets) {
+    const tx = parseFloat(el.style.left);
+    const ty = parseFloat(el.style.top);
+    const dx = state.vCursorX - tx;
+    const dy = state.vCursorY - ty;
+    if (Math.sqrt(dx * dx + dy * dy) <= r) {
+      onGridTargetHit(el);
+      hit = true;
+      break;
+    }
+  }
+
+  if (!hit) {
     state.misses++;
     updateHUD();
   }
@@ -253,7 +312,8 @@ function onGridAreaClick(e) {
 
 function cleanupGridshot() {
   const area = document.getElementById('game-area');
-  area.removeEventListener('click', onGridAreaClick);
+  area.removeEventListener('mousemove', onGameMouseMove);
+  area.removeEventListener('mousedown', onGridMouseDown);
   clearGameArea();
 }
 
@@ -275,23 +335,17 @@ function initTracking() {
     phiY: Math.random() * Math.PI * 2,
   };
 
-  const el       = document.createElement('div');
-  el.className   = 'target';
-  el.id          = 'tracking-target';
+  const el        = document.createElement('div');
+  el.className    = 'target';
+  el.id           = 'tracking-target';
   el.style.width  = `${getTrackingRadius() * 2}px`;
   el.style.height = `${getTrackingRadius() * 2}px`;
   el.style.left   = `${state.trackingParams.cx}px`;
   el.style.top    = `${state.trackingParams.cy}px`;
   area.appendChild(el);
 
-  area.addEventListener('mousemove', onTrackingMouseMove);
+  area.addEventListener('mousemove', onGameMouseMove);
   state.gameLoopId = requestAnimationFrame(trackingLoop);
-}
-
-function onTrackingMouseMove(e) {
-  const rect = document.getElementById('game-area').getBoundingClientRect();
-  state.cursorX = e.clientX - rect.left;
-  state.cursorY = e.clientY - rect.top;
 }
 
 function trackingLoop(timestamp) {
@@ -313,8 +367,8 @@ function trackingLoop(timestamp) {
   el.style.left = `${tx}px`;
   el.style.top  = `${ty}px`;
 
-  const dx  = state.cursorX - tx;
-  const dy  = state.cursorY - ty;
+  const dx  = state.vCursorX - tx;
+  const dy  = state.vCursorY - ty;
   const hit = Math.sqrt(dx * dx + dy * dy) <= getTrackingRadius();
 
   if (hit !== state.isOnTarget) {
@@ -336,7 +390,7 @@ function cleanupTracking() {
   cancelAnimationFrame(state.gameLoopId);
   state.gameLoopId = null;
   const area = document.getElementById('game-area');
-  area.removeEventListener('mousemove', onTrackingMouseMove);
+  area.removeEventListener('mousemove', onGameMouseMove);
   clearGameArea();
 }
 
@@ -351,7 +405,7 @@ function showResults() {
   let stats;
 
   if (isClickMode()) {
-    const total   = state.hits + state.misses;
+    const total    = state.hits + state.misses;
     const accuracy = total === 0 ? 0 : Math.round((state.hits / total) * 100);
     const hps      = (state.hits / Math.max(state.duration, 1)).toFixed(2);
 
@@ -379,11 +433,11 @@ function showResults() {
     );
 
     result = {
-      mode:          'tracking',
-      duration:      state.duration,
-      score:         state.score,
-      timeOnTarget:  pct,
-      date:          Date.now(),
+      mode:         'tracking',
+      duration:     state.duration,
+      score:        state.score,
+      timeOnTarget: pct,
+      date:         Date.now(),
     };
 
     stats = [
@@ -393,19 +447,13 @@ function showResults() {
     ];
   }
 
-  // Check personal best BEFORE saving (to compare against prior best)
+  // Check personal best BEFORE saving (compare against prior best only)
   const prevBest = getPersonalBest(state.mode);
   saveResult(result);
 
-  // Show PB badge
   const badge = document.getElementById('pb-badge');
-  if (prevBest === null || result.score > prevBest) {
-    badge.hidden = false;
-  } else {
-    badge.hidden = true;
-  }
+  badge.hidden = !(prevBest === null || result.score > prevBest);
 
-  // Render stat cards
   stats.forEach(({ label, value }) => {
     const card = document.createElement('div');
     card.className = 'stat-card';
@@ -452,7 +500,7 @@ function showStatsScreen() {
   }
 
   recent.forEach(r => {
-    const row  = document.createElement('div');
+    const row = document.createElement('div');
     row.className = 'history-row';
 
     let detail = '';
@@ -495,6 +543,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Sensitivity slider
+  const sensSlider = document.getElementById('sens-slider');
+  const sensValue  = document.getElementById('sens-value');
+  sensSlider.addEventListener('input', () => {
+    state.sensitivity = parseFloat(sensSlider.value);
+    sensValue.textContent = `${state.sensitivity.toFixed(1)}×`;
+  });
+
   // Timer presets
   document.querySelectorAll('.time-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -504,7 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const wrapper = document.getElementById('custom-time-wrapper');
       if (btn.dataset.time === 'custom') {
         wrapper.hidden = false;
-        // Duration stays as whatever it was until user types
       } else {
         wrapper.hidden = true;
         state.duration = parseInt(btn.dataset.time, 10);
@@ -522,7 +577,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Home screen buttons
   document.getElementById('btn-start').addEventListener('click', () => {
-    // Guard: if custom is selected but no valid value entered, do nothing
     const customBtn = document.querySelector('.time-btn[data-time="custom"]');
     if (customBtn.classList.contains('active')) {
       const val = parseInt(document.getElementById('custom-time').value, 10);

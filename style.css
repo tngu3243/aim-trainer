@@ -181,6 +181,29 @@ html, body {
   border-color: var(--accent-cyan);
 }
 
+/* Sensitivity row */
+.sens-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.sens-slider {
+  flex: 1;
+  accent-color: var(--accent-cyan);
+  cursor: pointer;
+  height: 4px;
+}
+
+#sens-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  min-width: 3.5ch;
+  text-align: right;
+}
+
 #custom-time-wrapper {
   width: 100%;
 }
@@ -349,8 +372,41 @@ html, body {
   flex: 1;
   position: relative;
   overflow: hidden;
-  cursor: crosshair;
+  cursor: none;
   background: radial-gradient(ellipse at center, #111116 0%, var(--bg-primary) 100%);
+}
+
+/* Custom crosshair */
+#crosshair {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+#crosshair::before,
+#crosshair::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+#crosshair::before {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+#crosshair::after {
+  height: 2px;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
 }
 
 /* subtle grid overlay for depth */
