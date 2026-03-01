@@ -119,3 +119,27 @@ function goTo(screen) {
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; }
 }
+
+// ============================================================
+// Crosshair settings
+// ============================================================
+const CH_KEY      = 'aimtrainer_crosshair';
+const CH_DEFAULTS = { color: '#ffffff', size: 10, thickness: 2, gap: 4, dot: 0, outline: 0 };
+
+function loadCrosshairSettings() {
+  try { return { ...CH_DEFAULTS, ...JSON.parse(localStorage.getItem(CH_KEY)) }; }
+  catch { return { ...CH_DEFAULTS }; }
+}
+
+function saveCrosshairSettings(ch) {
+  localStorage.setItem(CH_KEY, JSON.stringify(ch));
+}
+
+function applyCrosshairToEl(ch, el) {
+  el.style.setProperty('--ch-color',     ch.color);
+  el.style.setProperty('--ch-size',      ch.size);
+  el.style.setProperty('--ch-thickness', ch.thickness);
+  el.style.setProperty('--ch-gap',       ch.gap);
+  el.style.setProperty('--ch-dot',       ch.dot);
+  el.style.setProperty('--ch-outline',   ch.outline);
+}

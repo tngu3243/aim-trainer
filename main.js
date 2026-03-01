@@ -64,6 +64,42 @@ document.addEventListener('DOMContentLoaded', () => {
   gameAreaEl  = document.getElementById('game-area');
   crosshairEl = document.getElementById('crosshair');
 
+  // ── Crosshair customization ──────────────────────────────
+  const ch          = loadCrosshairSettings();
+  const chPreviewEl = document.getElementById('ch-preview');
+
+  function applyAndSaveCh() {
+    applyCrosshairToEl(ch, crosshairEl);
+    applyCrosshairToEl(ch, chPreviewEl);
+    saveCrosshairSettings(ch);
+  }
+
+  // helper: wire a numeric slider to a ch key
+  function chSlider(sliderId, key, valId) {
+    const slider = document.getElementById(sliderId);
+    const valEl  = document.getElementById(valId);
+    slider.value      = ch[key];
+    valEl.textContent = ch[key];
+    slider.addEventListener('input', () => {
+      ch[key] = parseInt(slider.value, 10);
+      valEl.textContent = ch[key];
+      applyAndSaveCh();
+    });
+  }
+
+  const chColorEl = document.getElementById('ch-color');
+  chColorEl.value = ch.color;
+  chColorEl.addEventListener('input', () => { ch.color = chColorEl.value; applyAndSaveCh(); });
+
+  chSlider('ch-size-slider',    'size',      'ch-size-val');
+  chSlider('ch-thick-slider',   'thickness', 'ch-thick-val');
+  chSlider('ch-gap-slider',     'gap',       'ch-gap-val');
+  chSlider('ch-dot-slider',     'dot',       'ch-dot-val');
+  chSlider('ch-outline-slider', 'outline',   'ch-outline-val');
+
+  applyAndSaveCh(); // apply saved settings on load
+  // ─────────────────────────────────────────────────────────
+
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
