@@ -63,7 +63,7 @@ html, body {
    ============================================================ */
 #screen-home {
   align-items: center;
-  overflow-y: auto;
+  justify-content: center;
 }
 
 .home-inner {
@@ -74,7 +74,6 @@ html, body {
   width: 100%;
   max-width: 480px;
   padding: 2rem;
-  margin: auto;
 }
 
 .logo {
@@ -772,6 +771,83 @@ html, body {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
+}
+
+/* ============================================================
+   SETTINGS SCREEN
+   ============================================================ */
+#screen-settings {
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+}
+
+.settings-inner h2 {
+  font-family: var(--font-logo);
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Background import UI */
+.bg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bg-import-btn {
+  flex: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.bg-filename {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bg-clear-btn {
+  flex: none;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.bg-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: -0.2rem;
+}
+
+/* Game area with custom background */
+#game-area.has-bg {
+  background-size: cover;
+  background-position: center;
+}
+
+#game-area.has-bg::before {
+  background: rgba(0, 0, 0, 0.45);
+  background-image: none;
 }
 
 /* ============================================================

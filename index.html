@@ -56,59 +56,10 @@
         <button class="size-btn" data-size="1.9">XL</button>
       </div>
 
-      <div class="section-label">Sensitivity</div>
-      <div class="sens-row">
-        <input type="range" id="sens-slider" class="sens-slider" min="0.1" max="5" step="0.1" value="1.0">
-        <span id="sens-value">1.0×</span>
-      </div>
-
-      <div class="section-label">Crosshair</div>
-      <div class="ch-settings">
-        <div class="ch-preview-box">
-          <div id="ch-preview">
-            <div class="ch-arm ch-top"></div>
-            <div class="ch-arm ch-right"></div>
-            <div class="ch-arm ch-bottom"></div>
-            <div class="ch-arm ch-left"></div>
-            <div class="ch-dot"></div>
-          </div>
-        </div>
-        <div class="ch-controls">
-          <div class="ch-row">
-            <label class="ch-label" for="ch-color">Color</label>
-            <input type="color" id="ch-color" class="ch-color-input">
-          </div>
-          <div class="ch-row">
-            <label class="ch-label" for="ch-size-slider">Size</label>
-            <input type="range" id="ch-size-slider" min="2" max="30" step="1" class="ch-slider">
-            <span id="ch-size-val" class="ch-val">10</span>
-          </div>
-          <div class="ch-row">
-            <label class="ch-label" for="ch-thick-slider">Thickness</label>
-            <input type="range" id="ch-thick-slider" min="1" max="8" step="1" class="ch-slider">
-            <span id="ch-thick-val" class="ch-val">2</span>
-          </div>
-          <div class="ch-row">
-            <label class="ch-label" for="ch-gap-slider">Gap</label>
-            <input type="range" id="ch-gap-slider" min="0" max="20" step="1" class="ch-slider">
-            <span id="ch-gap-val" class="ch-val">4</span>
-          </div>
-          <div class="ch-row">
-            <label class="ch-label" for="ch-dot-slider">Dot</label>
-            <input type="range" id="ch-dot-slider" min="0" max="10" step="1" class="ch-slider">
-            <span id="ch-dot-val" class="ch-val">0</span>
-          </div>
-          <div class="ch-row">
-            <label class="ch-label" for="ch-outline-slider">Outline</label>
-            <input type="range" id="ch-outline-slider" min="0" max="4" step="1" class="ch-slider">
-            <span id="ch-outline-val" class="ch-val">0</span>
-          </div>
-        </div>
-      </div>
-
       <div class="home-actions">
         <button id="btn-start" class="btn-primary">Start</button>
         <button id="btn-stats" class="btn-secondary">Stats</button>
+        <button id="btn-settings" class="btn-secondary">Settings</button>
       </div>
     </div>
   </section>
@@ -161,6 +112,82 @@
       <div class="stats-actions">
         <button id="btn-clear-history" class="btn-danger">Clear History</button>
         <button id="btn-stats-back" class="btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 5: Settings -->
+  <section id="screen-settings" class="screen">
+    <div class="settings-inner">
+      <h2>Settings</h2>
+
+      <div class="settings-section">
+        <div class="section-label">Sensitivity</div>
+        <div class="sens-row">
+          <input type="range" id="sens-slider" class="sens-slider" min="0.1" max="5" step="0.1" value="1.0">
+          <span id="sens-value">1.0×</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-label">Crosshair</div>
+        <div class="ch-settings">
+          <div class="ch-preview-box">
+            <div id="ch-preview">
+              <div class="ch-arm ch-top"></div>
+              <div class="ch-arm ch-right"></div>
+              <div class="ch-arm ch-bottom"></div>
+              <div class="ch-arm ch-left"></div>
+              <div class="ch-dot"></div>
+            </div>
+          </div>
+          <div class="ch-controls">
+            <div class="ch-row">
+              <label class="ch-label" for="ch-color">Color</label>
+              <input type="color" id="ch-color" class="ch-color-input">
+            </div>
+            <div class="ch-row">
+              <label class="ch-label" for="ch-size-slider">Size</label>
+              <input type="range" id="ch-size-slider" min="2" max="30" step="1" class="ch-slider">
+              <span id="ch-size-val" class="ch-val">10</span>
+            </div>
+            <div class="ch-row">
+              <label class="ch-label" for="ch-thick-slider">Thickness</label>
+              <input type="range" id="ch-thick-slider" min="1" max="8" step="1" class="ch-slider">
+              <span id="ch-thick-val" class="ch-val">2</span>
+            </div>
+            <div class="ch-row">
+              <label class="ch-label" for="ch-gap-slider">Gap</label>
+              <input type="range" id="ch-gap-slider" min="0" max="20" step="1" class="ch-slider">
+              <span id="ch-gap-val" class="ch-val">4</span>
+            </div>
+            <div class="ch-row">
+              <label class="ch-label" for="ch-dot-slider">Dot</label>
+              <input type="range" id="ch-dot-slider" min="0" max="10" step="1" class="ch-slider">
+              <span id="ch-dot-val" class="ch-val">0</span>
+            </div>
+            <div class="ch-row">
+              <label class="ch-label" for="ch-outline-slider">Outline</label>
+              <input type="range" id="ch-outline-slider" min="0" max="4" step="1" class="ch-slider">
+              <span id="ch-outline-val" class="ch-val">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-label">Background</div>
+        <div class="bg-row">
+          <label for="bg-file-input" class="btn-secondary bg-import-btn">Import Image</label>
+          <input type="file" id="bg-file-input" accept="image/*" hidden>
+          <span id="bg-filename" class="bg-filename">No image</span>
+          <button id="btn-clear-bg" class="btn-danger bg-clear-btn" hidden>Clear</button>
+        </div>
+        <p class="bg-note">Temporary — resets when you close the page</p>
+      </div>
+
+      <div class="stats-actions">
+        <button id="btn-settings-back" class="btn-secondary">Back to Menu</button>
       </div>
     </div>
   </section>

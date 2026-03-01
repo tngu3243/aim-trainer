@@ -100,6 +100,33 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAndSaveCh(); // apply saved settings on load
   // ─────────────────────────────────────────────────────────
 
+  // ── Background import ─────────────────────────────────────
+  let bgObjectURL   = null;
+  const bgFileInput = document.getElementById('bg-file-input');
+  const bgFilename  = document.getElementById('bg-filename');
+  const btnClearBg  = document.getElementById('btn-clear-bg');
+
+  bgFileInput.addEventListener('change', () => {
+    const file = bgFileInput.files[0];
+    if (!file) return;
+    if (bgObjectURL) URL.revokeObjectURL(bgObjectURL);
+    bgObjectURL = URL.createObjectURL(file);
+    gameAreaEl.style.backgroundImage = `url("${bgObjectURL}")`;
+    gameAreaEl.classList.add('has-bg');
+    bgFilename.textContent = file.name;
+    btnClearBg.hidden = false;
+    bgFileInput.value = ''; // allow re-selecting the same file
+  });
+
+  btnClearBg.addEventListener('click', () => {
+    if (bgObjectURL) { URL.revokeObjectURL(bgObjectURL); bgObjectURL = null; }
+    gameAreaEl.style.backgroundImage = '';
+    gameAreaEl.classList.remove('has-bg');
+    bgFilename.textContent = 'No image';
+    btnClearBg.hidden = true;
+  });
+  // ─────────────────────────────────────────────────────────
+
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -153,6 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-stats').addEventListener('click', () => { showStatsScreen(); goTo('stats'); });
+  document.getElementById('btn-settings').addEventListener('click', () => goTo('settings'));
+  document.getElementById('btn-settings-back').addEventListener('click', () => goTo('home'));
   document.getElementById('btn-quit').addEventListener('click', endGame);
   document.getElementById('btn-play-again').addEventListener('click', startGame);
   document.getElementById('btn-menu').addEventListener('click', () => goTo('home'));
