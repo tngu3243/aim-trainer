@@ -62,9 +62,23 @@ function initGridshot() {
 }
 
 function spawnGridTarget() {
-  const r = cachedRadius;
-  const x = r + Math.random() * (state.areaW - 2 * r);
-  const y = r + Math.random() * (state.areaH - 2 * r);
+  const r        = cachedRadius;
+  const minDist2 = (r * 2) * (r * 2);
+  const existing = [...gameAreaEl.querySelectorAll('.target')].map(el => ({
+    x: parseFloat(el.style.left),
+    y: parseFloat(el.style.top),
+  }));
+
+  let x, y, attempts = 0;
+  do {
+    x = r + Math.random() * (state.areaW - 2 * r);
+    y = r + Math.random() * (state.areaH - 2 * r);
+    attempts++;
+  } while (
+    attempts < 200 &&
+    existing.some(t => { const dx = x - t.x, dy = y - t.y; return dx * dx + dy * dy < minDist2; })
+  );
+
   gameAreaEl.appendChild(createTarget(x, y, r));
 }
 
