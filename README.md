@@ -4,6 +4,8 @@ A browser-based aim training application built with vanilla JavaScript, HTML, an
 
 The project focuses on performance, smooth animations, and efficient hit detection while running entirely in the browser with no external libraries.
 
+https://tngu3243.github.io/aim-trainer/
+
 ## Overview
 This aim trainer provides several training modes designed to improve different aspects of mouse control:
 - Flick aiming
