@@ -47,8 +47,11 @@ function updateCrosshair() {
 
 function onGameMouseMove(e) {
   if (document.pointerLockElement === gameAreaEl) {
-    state.vCursorX = Math.max(0, Math.min(state.areaW, state.vCursorX + e.movementX * state.sensitivity));
-    state.vCursorY = Math.max(0, Math.min(state.areaH, state.vCursorY + e.movementY * state.sensitivity));
+    const effectiveSens = (state.valorantSens !== null)
+      ? state.valorantSens * 0.07 * (state.areaW / 103)
+      : state.sensitivity;
+    state.vCursorX = Math.max(0, Math.min(state.areaW, state.vCursorX + e.movementX * effectiveSens));
+    state.vCursorY = Math.max(0, Math.min(state.areaH, state.vCursorY + e.movementY * effectiveSens));
   } else {
     const rect = gameAreaEl.getBoundingClientRect();
     state.vCursorX = e.clientX - rect.left;

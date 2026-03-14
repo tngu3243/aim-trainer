@@ -839,6 +839,48 @@ html, body {
   margin-top: -0.2rem;
 }
 
+/* Valorant sensitivity sync */
+.valo-input {
+  flex: 1;
+  padding: 0.45rem 0.7rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.valo-input:focus { border-color: var(--accent-cyan); }
+.valo-input::placeholder { color: var(--text-muted); }
+.valo-input::-webkit-inner-spin-button,
+.valo-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.valo-computed {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 5ch;
+  text-align: right;
+}
+.valo-computed.valo-active { color: var(--accent-cyan); }
+
+.valo-clear-btn {
+  padding: 0.35rem 0.8rem;
+  background: var(--bg-card);
+  color: var(--accent-red);
+  border: 1px solid var(--accent-red);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.valo-clear-btn:hover { background: var(--bg-card-hover); }
+
+.sens-slider:disabled { opacity: 0.35; pointer-events: none; }
+
 /* Game area with custom background */
 #game-area.has-bg {
   background-size: cover;

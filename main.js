@@ -150,6 +150,31 @@ document.addEventListener('DOMContentLoaded', () => {
     sensValue.textContent = `${state.sensitivity.toFixed(1)}×`;
   });
 
+  const valoInput    = document.getElementById('valo-sens-input');
+  const valoComputed = document.getElementById('valo-computed');
+  const valoClearBtn = document.getElementById('valo-clear-btn');
+
+  function applyValoSens(raw) {
+    const v = parseFloat(raw);
+    if (!raw || isNaN(v) || v <= 0) {
+      state.valorantSens = null;
+      valoComputed.textContent = '';
+      valoComputed.classList.remove('valo-active');
+      sensSlider.disabled = false;
+      valoClearBtn.hidden = true;
+      return;
+    }
+    state.valorantSens = v;
+    const refW = state.areaW || 1280;
+    valoComputed.textContent = `≈ ${(v * 0.07 * refW / 103).toFixed(2)}×`;
+    valoComputed.classList.add('valo-active');
+    sensSlider.disabled = true;
+    valoClearBtn.hidden = false;
+  }
+
+  valoInput.addEventListener('input', () => applyValoSens(valoInput.value));
+  valoClearBtn.addEventListener('click', () => { valoInput.value = ''; applyValoSens(''); });
+
   document.querySelectorAll('.time-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));

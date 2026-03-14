@@ -23,6 +23,7 @@ const state = {
   duration: 30,
   targetSize: 1.0,
   sensitivity: 1.0,
+  valorantSens: null,   // null = use slider; number = Valorant in-game sens
 
   timeRemaining: 0,
   score: 0,
